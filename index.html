@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    .input-group {
+      background: #f1f1f1;
+      border: #c9c9c9 solid 1px;
+      border-radius: 5px;
+      box-shadow: #0002 0 2px 5px;
+      overflow: hidden;
+      display: flex;
+      margin: 0.5rem 0;
+    }
+    .input-group label {
+      background: #e7e7e7;
+      padding: 0.25rem 0.5rem;
+    }
+    .input-group input {
+      background: none;
+      display: block;
+      margin: 0 0.25rem;
+      padding: 0;
+      border: 0;
+      width: 100%;
+    }
+    .input-group input:focus {
+      outline: 0;
+    }
+
+    button {
+      margin: 0.5rem 0;
+      background: #f1f1f1;
+      padding: 0.25rem 0.5rem;
+      border: #c9c9c9 solid 1px;
+      border-radius: 5px;
+      box-shadow: #0002 0 2px 5px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button:hover {
+      background: #e7e7e7;
+    }
+
+    button:active {
+      background: #e7e7e7;
+      transform: translateY(2px);
+      box-shadow: #0002 0 0 5px;
+    }
+
+    #random {
+      background: #fff5c5;
+      border: #ffe354 solid 1px;
+    }
+
+    .secondary {
+      color: #585858;
+    }
+
+    .mid {
+      color: #fff;
+      background-color: #f66;
+      border-radius: 3px;
+      padding: 0 0.25rem;
+    }
+
+    #line {
+      height: 1px;
+      border-top: #000 solid 2px;
+      position: relative;
+      margin-bottom: 100px;
+      margin-right: 10px;
+    }
+
+    #line div {
+      position: absolute;
+      top: 0;
+      height: 0.8rem;
+      width: 2px;
+      border-left: #000 solid 2px;
+      font-size: 0.8rem;
+      padding-left: 0.1rem;
+      font-weight: bold;
+    }
+
+    #line::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 0;
+      transform: translate(100%, calc(-50% - 0.5px));
+      border: transparent solid 0;
+      border-width: 5px 0 5px 10px;
+      border-left-color: black;
+    }
+
+    #boxplot {
+      position: relative;
+      height: 100px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+
+    #minmax {
+      position: absolute;
+      top: 0;
+      border: black solid 2px;
+      border-top: 0;
+      border-bottom: 0;
+      height: 100px;
+    }
+
+    #mid {
+      position: absolute;
+      top: 2px;
+      border-left: #f66 solid 2px;
+      height: 94px;
+    }
+
+    #quart {
+      position: absolute;
+      border: black solid 2px;
+      height: 94px;
+      background-color: white;
+    }
+
+    #minmax::after {
+      content: '';
+      position: absolute;
+      background-color: black;
+      top: 50%;
+      height: 2px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="input-group">
+    <label for="">Daten: </label><input id="data" type="text">
+  </div>
+  <div>
+    <i class="secondary">Mit Daten Spaces Trennen. z.B. 4 8 0 15 4 3 1 17 5 20 2 13 1 1 16 1 2 1 3 13</i>
+  </div>
+  <button id="generate">Generieren</button>
+  <button id="random">Zufall</button>
+
+  <p id="sorted-data"></p>
+  <p id="medians"></p>
+
+  <div id="boxplot">
+    <div id="minmax"></div>
+    <div id="quart"></div>
+    <div id="mid"></div>
+  </div>
+
+  <div id="line"></div>
+
+  <script>
+    var button = document.getElementById('generate')
+    var dataInput = document.getElementById('data')
+    var sortedDataText = document.getElementById('sorted-data')
+    var mediansText = document.getElementById('medians')
+    var lineEl = document.getElementById('line')
+    var boxplot = document.getElementById('boxplot')
+
+    boxplot.style.display = 'none'
+    lineEl.style.display = 'none'
+
+    document.getElementById('random').addEventListener('click', () => {
+      // Generate random data
+      var randomData = ''
+      for (let i = 0; i < 20; i++) {
+        randomData += Math.round(Math.random() * 20) + " "
+      }
+      // Set Random data as input value
+      dataInput.value = randomData
+      console.log(randomData)
+    })
+
+    button.addEventListener('click', () => {
+      try {
+        boxplot.style.display = 'block'
+        lineEl.style.display = 'block'
+
+        // Sort the data
+        var sortedData = dataInput.value
+          .trim().split(' ')
+          .map(x => parseInt(x))
+          .sort((a, b) => a - b)
+
+        // get Median
+        var median
+
+        if (sortedData.length % 2) {
+          median = sortedData[sortedData.length / 2 - 0.5]
+        } else {
+          let num01 = sortedData[sortedData.length / 2]
+          let num02 = sortedData[sortedData.length / 2 - 1]
+          median = (num01 + num02) / 2
+        }
+        console.log(median)
+
+        // get Medians of Quartil
+        var quartilMedian01
+        var quartilMedian02
+
+        var quartilArray01 = []
+        var quartilArray02 = []
+
+        if (sortedData.length % 2) {
+          quartilArray01 = [...sortedData].splice(0, Math.floor(sortedData.length / 2))
+          quartilArray02 = [...sortedData].splice(Math.floor(sortedData.length / 2 + 1))
+        } else {
+          quartilArray01 = [...sortedData].splice(0, Math.floor(sortedData.length / 2 - 1))
+          quartilArray02 = [...sortedData].splice(Math.floor(sortedData.length / 2 + 1))
+        }
+
+        if (quartilArray01.length % 2) {
+          quartilMedian01 = quartilArray01[quartilArray01.length / 2 - 0.5]
+        } else {
+          let num01 = quartilArray01[quartilArray01.length / 2]
+          let num02 = quartilArray01[quartilArray01.length / 2 - 1]
+          quartilMedian01 = (num01 + num02) / 2
+        }
+
+        if (quartilArray02.length % 2) {
+          quartilMedian02 = quartilArray02[quartilArray02.length / 2 - 0.5]
+        } else {
+          let num01 = quartilArray02[quartilArray02.length / 2]
+          let num02 = quartilArray02[quartilArray02.length / 2 - 1]
+          quartilMedian02 = (num01 + num02) / 2
+        }
+        console.log(quartilMedian01, quartilMedian02)
+
+        // Set array to SortedData Text
+        sortedDataText.innerHTML = sortedData.map((x, i) => {
+          if (sortedData.length % 2) {
+            if (i === sortedData.length / 2 - 0.5) {
+              return '<span class="mid">' + x + '</span>'
+            }
+            return x
+          } else {
+            if (i === sortedData.length / 2 || i === sortedData.length / 2 - 1) {
+              return '<span class="mid">' + x + '</span>'
+            }
+            return x
+          }
+        }).join(' ')
+        mediansText.innerHTML =
+          'Median: ' + median +
+          '<br>Unteres Quartil Median: ' + quartilMedian01 +
+          '<br>Oberes Quartil Median: ' + quartilMedian02 +
+          '<br>Minimum: ' + sortedData[0] +
+          '<br>Maximum: ' + sortedData[sortedData.length - 1]
+
+        console.log((Math.ceil(sortedData[sortedData.length - 1]) + 1) - (Math.floor(sortedData[0]) - 1))
+
+        lineEl.innerHTML = ''
+        
+        var minLine = Math.floor(sortedData[0]) - 1
+        var maxLine = Math.ceil(sortedData[sortedData.length - 1])
+
+        var index = 0
+        for (let i = minLine; i <= maxLine; i++) {
+          let el = document.createElement('div')
+          el.textContent = i
+          el.style.left = getPercentage(i) + '%'
+
+          console.log(index, i)
+          
+          lineEl.appendChild(el)
+          index++;
+        }
+
+        document.getElementById('mid').style.left = getPercentage(median) + '%'
+        document.getElementById('minmax').style.left = getPercentage(sortedData[0]) + '%'
+        document.getElementById('minmax').style.right = 100 - getPercentage(sortedData[sortedData.length - 1]) + '%'
+        document.getElementById('quart').style.left = getPercentage(quartilMedian01) + '%'
+        document.getElementById('quart').style.right = 100 - getPercentage(quartilMedian02) + '%'
+
+        function getPercentage(index) {
+          return ((index - minLine) / ((maxLine + 1) - minLine)) * 100
+        }
+
+      } catch (err) {
+        console.error(err)
+      }
+    })
+
+
+  </script>
+
+
+</body>
+</html>
