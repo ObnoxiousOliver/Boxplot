@@ -193,7 +193,7 @@
         // Sort the data
         var sortedData = dataInput.value
           .trim().split(' ')
-          .map(x => parseInt(x))
+          .map(x => parseFloat(x.replace(',', '.')))
           .sort((a, b) => a - b)
 
         // get Median
